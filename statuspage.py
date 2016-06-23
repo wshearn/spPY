@@ -280,8 +280,15 @@ class Incidents:
 
         return None
 
-    def get_incident_coponent(self, incident_id):
-        return "Derp"
+    def get_incident_components(self, incident_id):
+        components = []
+        incident = self.get_incident(incident_id)
+        for component in incident["components"]:
+            temp_comp = self.statuspage.Components.get_component(component["id"])
+            if temp_comp != None:
+                components.append(temp_comp)
+
+        return components
 
 if __name__ == '__main__':
     API_KEY = os.environ.get('STATUSPAGE_API_KEY')
@@ -295,8 +302,9 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     statuspage = StatusPage(API_KEY, PAGE_ID)
-    incident = statuspage.Incidents.get_incident("")
+    incident = statuspage.Incidents.get_incident(sys.argv[1])
+    components = statuspage.Incidents.get_incident_components(incident["id"])
     print "Incident Name: " + incident["name"]
-    print "Cluster: " + statuspage.Components.get_component(incident["components"][0]["group_id"])["name"]
-    for component in incident["components"]:
-        print "Component Name: " + component["name"]
+    for component in components:
+        cluster = statuspage.Components.get_component(component["group_id"])
+        print "Cluster ID: " + cluster["name"] + " - Component Name: " + component["name"]
