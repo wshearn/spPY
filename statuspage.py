@@ -53,6 +53,7 @@ class StatusPage:
         try:
             response = urllib2.urlopen(req, context=gcontext).read()
         except urllib2.HTTPError as e:
+            print e.read()
             return None
         return json.loads(response)
 
