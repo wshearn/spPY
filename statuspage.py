@@ -20,6 +20,7 @@ class StatusPage:
         self.Users = Users(self)
         self.Groups = Groups(self)
         self.Components = Components(self)
+        self.Incidents = Incidents(self)
 
     def call_api_get(self, api_page):
         '''
@@ -53,7 +54,6 @@ class StatusPage:
         try:
             response = urllib2.urlopen(req, context=gcontext).read()
         except urllib2.HTTPError as e:
-            print e.read()
             return None
         return json.loads(response)
 
@@ -145,12 +145,21 @@ class Groups:
         return self.statuspage.call_api_get("page_access_groups")
 
     def get_group(self, name):
-        ''' Filters get_users and returns a single dict of the access group '''
+        ''' Filters get_groups and returns a single dict of the access group '''
         groups = self.get_groups()
         for group in groups:
             if group["name"] == name:
                 return group
-        
+
+        return None
+
+    def get_group_by_id(self, group_id):
+        ''' Filters get_groups and returns a single dict of the access group '''
+        groups = self.get_groups()
+        for group in groups:
+            if group["id"] == group_id:
+                return group
+
         return None
 
     def get_group_users(self, name):
@@ -211,6 +220,27 @@ class Components:
     def __init__(self, statuspage):
         self.statuspage = statuspage
 
+    def get_components(self):
+        return self.statuspage.call_api_get("components")
+
+    def get_component(self, component_id):
+        components = self.get_components()
+        for component in components:
+            if component_id == component["id"]:
+                return component
+
+        return None
+
+    def get_user_groups(self, component_id):
+        ''' Returns an array of dicts of the groups a component belogs to '''
+        component_groups = []
+        user = self.get_user(email)
+        groups = self.statuspage.get_groups()
+        for group in groups:
+            if user["id"] in group["page_access_user_ids"]:
+                user_groups.append(group)
+        return user_groups
+
     def create_component(self, component, groupname):
         '''
             Creates a specified component in the group groupname
@@ -235,6 +265,24 @@ class Components:
         return return_data
 
 
+class Incidents:
+    def __init__(self, statuspage):
+        self.statuspage = statuspage
+
+    def get_incidents(self):
+        return self.statuspage.call_api_get("incidents")
+
+    def get_incident(self, incident_id):
+        incidents = self.get_incidents()
+        for incident in incidents:
+            if incident_id == incident["id"]:
+                return incident
+
+        return None
+
+    def get_incident_coponent(self, incident_id):
+        return "Derp"
+
 if __name__ == '__main__':
     API_KEY = os.environ.get('STATUSPAGE_API_KEY')
     PAGE_ID = os.environ.get('STATUSPAGE_PAGE_ID')
@@ -247,16 +295,8 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     statuspage = StatusPage(API_KEY, PAGE_ID)
-    groupname = ""
-    users = [
-    ]
-    components = [
-    ]
-
-    ret = statuspage.Components.create_components(components, groupname)
-    component_ids = []
-    for item in ret:
-        component_ids.append(item["id"])
-    ret = statuspage.Groups.create_group(component_ids, groupname)
-    page_access_group_id = ret["id"]
-    ret = statuspage.Users.create_users(users, page_access_group_id)
+    incident = statuspage.Incidents.get_incident("")
+    print "Incident Name: " + incident["name"]
+    print "Cluster: " + statuspage.Components.get_component(incident["components"][0]["group_id"])["name"]
+    for component in incident["components"]:
+        print "Component Name: " + component["name"]
