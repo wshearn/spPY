@@ -9,6 +9,7 @@ import urllib
 import urllib2
 import ssl
 import json
+import time
 
 class StatusPage:
     """ StatusPage.io base class """
@@ -304,7 +305,12 @@ if __name__ == '__main__':
     statuspage = StatusPage(API_KEY, PAGE_ID)
     incident = statuspage.Incidents.get_incident(sys.argv[1])
     components = statuspage.Incidents.get_incident_components(incident["id"])
-    print "Incident Name: " + incident["name"]
     for component in components:
         cluster = statuspage.Components.get_component(component["group_id"])
         print "Cluster ID: " + cluster["name"] + " - Component Name: " + component["name"]
+    print "Updates:"
+    for update in reversed(incident["incident_updates"]):
+        print "======================"
+        print "Time: " + update["updated_at"]
+        print "Message: " + update["body"]
+    print "======================"
