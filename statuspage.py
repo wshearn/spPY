@@ -53,7 +53,6 @@ class StatusPage:
         try:
             response = urllib2.urlopen(req, context=gcontext).read()
         except urllib2.HTTPError as e:
-            print e.read()
             return None
         return json.loads(response)
 
@@ -71,7 +70,7 @@ class Users:
         ''' Filters get_users and returns a single dict of the user '''
         users = self.get_users()
         for user in users:
-            if user["email"] == email:
+            if user["email"] == email.lower():
                 return user
     
     def get_user_groups(self, email):
@@ -90,7 +89,7 @@ class Users:
             Returns a dict of the group when done
         '''
         group = self.get_group(name)
-        return self.add_user_to_group_id(email, group["id"])
+        return self.add_user_to_group_id(email.lower(), group["id"])
     
     def add_user_to_group_id(self, email, groupid):
         '''
@@ -123,7 +122,7 @@ class Users:
                 "page_access_user[page_access_group_ids][]=" +
                 page_access_group_id
             )
-            post_data.append("page_access_user[email]=" + user)
+            post_data.append("page_access_user[email]=" + user.lower())
         
             data = '&'.join(post_data)
             append_data = self.statuspage.call_api_post("page_access_users", data)
